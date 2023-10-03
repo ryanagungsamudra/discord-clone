@@ -25,14 +25,12 @@ export const NavigationItem = ({
     router.push(`/servers/${id}`);
   }
 
-  // Define the default URL for the random people icon
-  const defaultIconUrl = 'https://source.unsplash.com/random/?people';
   // Use state to keep track of the image source
-  const [imageSrc, setImageSrc] = useState(imageUrl || defaultIconUrl);
+  const [imageSrc, setImageSrc] = useState(imageUrl || require('@/app/assets/whale.png'));
   // Function to handle changing the image source when imageUrl is empty
   const handleImageFallback = () => {
     if (!imageUrl) {
-      setImageSrc(defaultIconUrl);
+      setImageSrc(require('@/app/assets/whale.png'));
     }
   };
 
