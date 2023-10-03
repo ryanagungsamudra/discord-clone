@@ -1,5 +1,6 @@
 'use client'
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
@@ -40,7 +41,7 @@ export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
     >
       <input {...getInputProps()} />
       {filePreview ? (
-        <img src={filePreview} alt="File Preview" className="max-w-full max-h-40" />
+        <Image src={filePreview} alt="File Preview" className="max-w-full max-h-40" />
       ) : (
         <p className="text-zinc-500 dark:text-secondary/70">
           {isDragActive
