@@ -34,7 +34,7 @@ export const FileUploadDropzone = ({ onDrop, imageUrl }: FileUploadProps) => {
     } else {
       setFilePreview(null);
     }
-  }, [acceptedFiles]);
+  }, [acceptedFiles, imageUrl]);
 
   return (
     <div
