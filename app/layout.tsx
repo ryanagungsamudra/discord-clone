@@ -30,7 +30,7 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="discord-theme"
           >
-            {/* <ModalProvider /> */}
+            <ModalProvider />
             {children}
             <Toaster />
           </ThemeProvider>

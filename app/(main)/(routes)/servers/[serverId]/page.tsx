@@ -1,5 +1,5 @@
 export default function Page() {
   return (
-      <p></p>
+      <p>server page</p>
     );
 }

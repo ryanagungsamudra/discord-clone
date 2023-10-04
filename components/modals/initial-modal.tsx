@@ -62,7 +62,7 @@ export const InitialModal = () => {
 
   // Handle image upload
   const { toast } = useToast();
-  const [rawImage, setRawImage] = useState(null);
+  const [rawImage, setRawImage] = useState<File[]>([]);
   const [progress, setProgress] = useState(0);
 
   const onDrop = async (acceptedFiles: any) => {
@@ -120,8 +120,10 @@ export const InitialModal = () => {
         title: "Success create server",
         description: "Your server has been created successfully!",
       });
+      
       form.reset();
       router.refresh();
+      setProgress(0);
       window.location.reload();
     } catch (error) {
       console.log(error);
@@ -244,7 +246,14 @@ export const InitialModal = () => {
               />
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4 items-center">
-              <Progress value={progress} />
+              {
+                progress > 0 && (
+                  <>
+                  <Progress value={progress} className="mr-0 w-full" />
+                  <p className="ml-4">{progress}%</p>
+                  </>
+                )
+              }
 
               <Button type="submit" variant={"primary"} disabled={isLoading}>
                 Create

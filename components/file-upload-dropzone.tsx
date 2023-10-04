@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -9,15 +9,16 @@ interface FileUploadProps {
 }
 
 export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
-    const [filePreview, setFilePreview] = useState<string | null>(null);
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': [],
-    }
-  });
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
+    useDropzone({
+      onDrop,
+      accept: {
+        "image/*": [],
+      },
+    });
 
-   useEffect(() => {
+  useEffect(() => {
     // Load and display the first selected image as a preview
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
@@ -31,23 +32,37 @@ export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
     }
   }, [acceptedFiles]);
 
-
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer ${
+      className={`border-[2px] border-dashed rounded-lg p-4 text-center cursor-pointer mx-[5.5rem] ${
         isDragActive ? "border-primary" : "border-zinc-300"
-      }`}
-    >
+      }`}>
       <input {...getInputProps()} />
-      {filePreview ? (
-        <Image src={filePreview} alt="File Preview" className="max-w-full max-h-40" />
+      {filePreview !== null ? (
+        <Image
+          src={filePreview}
+          alt="File Preview"
+          width={200}
+          height={200}
+          className="max-w-full max-h-40"
+        />
       ) : (
-        <p className="text-zinc-500 dark:text-secondary/70">
-          {isDragActive
-            ? "Drop the file here ..."
-            : "Drag 'n' drop an image file here, or click to select one"}
-        </p>
+        <>
+          <p className="text-zinc-500 dark:text-secondary/70">
+            <div className="flex w-full justify-center mb-4">
+              <Image
+                src={require("@/app/assets/upload.png")}
+                alt="Upload Icon"
+                width={100}
+                height={100}
+                />
+            </div>
+            {isDragActive
+              ? "Drop the file here ..."
+              : "Drag & drop an image file here, or click to select one"}
+          </p>
+        </>
       )}
     </div>
   );
