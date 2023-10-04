@@ -6,10 +6,12 @@ import { useDropzone } from "react-dropzone";
 
 interface FileUploadProps {
   onDrop: (acceptedFiles: File[]) => void;
+  imageUrl?: string;
 }
 
-export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
+export const FileUploadDropzone = ({ onDrop, imageUrl }: FileUploadProps) => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
+
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
     useDropzone({
       onDrop,
@@ -27,6 +29,8 @@ export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
         setFilePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    } else if (imageUrl) {
+      setFilePreview(imageUrl);
     } else {
       setFilePreview(null);
     }
@@ -45,7 +49,8 @@ export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
           alt="File Preview"
           width={200}
           height={200}
-          className="max-w-full max-h-40"
+          // className="max-w-40 max-h-40 rounded-full"
+          className="w-40 h-40 rounded-full object-cover"
         />
       ) : (
         <>
@@ -56,7 +61,7 @@ export const FileUploadDropzone = ({ onDrop }: FileUploadProps) => {
                 alt="Upload Icon"
                 width={100}
                 height={100}
-                />
+              />
             </div>
             {isDragActive
               ? "Drop the file here ..."
