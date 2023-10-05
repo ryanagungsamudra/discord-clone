@@ -3,14 +3,14 @@
 import axios from "axios";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 
+import qs from "query-string";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogFooter,
 } from "@/components/ui/dialog";
@@ -22,106 +22,78 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Progress } from "@/components/ui/progress";
-import { ToastAction } from "@/components/ui/toast";
-import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FileUpload } from "@/components/file-upload";
-import { useRouter } from "next/navigation";
-import { FileUploadDropzone } from "../file-upload-dropzone";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { useParams, useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChannelType } from "@prisma/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  name: z.string().min(1, {
-    message: "Server name is required",
-  }),
-  imageUrl: z.string().optional(),
+  name: z
+    .string()
+    .min(1, {
+      message: "Channel name is required",
+    })
+    .refine((name) => name !== "general", {
+      message: "Channel name cannot be 'general'",
+    }),
+  type: z.nativeEnum(ChannelType),
 });
 
 export const CreateChannelModal = () => {
-  const { isOpen, onClose, type } = useModal();
+  const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
+  const params = useParams();
+  const { toast } = useToast();
 
   const isModalOpen = isOpen && type === "createChannel";
+  const { channelType } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      imageUrl: "",
+      type: channelType || ChannelType.TEXT,
     },
   });
 
+  useEffect(() => {
+    if (channelType) {
+      form.setValue("type", channelType);
+    } else {
+      form.setValue("type", ChannelType.TEXT);
+    }
+  }, [channelType, form]);
+
   const isLoading = form.formState.isSubmitting;
 
-  // Handle image upload
-  const { toast } = useToast();
-  const [rawImage, setRawImage] = useState<File[]>([]);
-  const [progress, setProgress] = useState(0);
-
-  const onDrop = async (acceptedFiles: any) => {
-    setRawImage(acceptedFiles);
-  };
-
-  const uploadFirebase = async () => {
-    if (rawImage) {
-      const imageRef = ref(
-        storage,
-        `/discord/serverImage/${rawImage[0]?.name}`
-      );
-
-      const task = uploadBytesResumable(imageRef, rawImage[0]);
-
-      task.on("state_changed", (snapshot) => {
-        // Calculate the progress percentage
-        const newProgress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-
-        // Update the progress state only if it has changed
-        if (newProgress !== progress) {
-          setProgress(newProgress);
-        }
-      });
-
-      try {
-        await task;
-
-        const downloadURL = await getDownloadURL(imageRef);
-        console.log("File uploaded successfully. Download URL:", downloadURL);
-
-        // Set the imageUrl field in the form
-        form.setValue("imageUrl", downloadURL, { shouldValidate: false });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await uploadFirebase();
-
-    // Get the imageUrl value from the form after uploadFirebase has completed
-    const imageUrl = form.getValues("imageUrl");
-
-    // Set the imageUrl in the values object
-    values.imageUrl = imageUrl;
-
     try {
-      await axios.post("/api/servers", values);
+      const url = qs.stringifyUrl({
+        url: "/api/channels",
+        query: {
+          serverId: params?.serverId,
+        },
+      });
+      await axios.post(url, values);
+
       toast({
         variant: "success",
-        title: "Success create server",
-        description: "Your server has been created successfully!",
+        title: "Success create channel",
+        description: "Your channel has been created successfully!",
       });
 
       form.reset();
       router.refresh();
       onClose();
-      setProgress(0);
     } catch (error) {
       console.log(error);
     }
@@ -142,7 +114,7 @@ export const CreateChannelModal = () => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="space-y-8 px-6">
+            <div className="space-y-4 px-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -163,15 +135,40 @@ export const CreateChannelModal = () => {
                   </FormItem>
                 )}
               />
+              <div className="pb-6">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Channel Type</FormLabel>
+                      <Select
+                        disabled={isLoading}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-zinc-300/50 border-0 focus:ring-0 text-black ring-offset-0 focus:ring-offset-0 capitalize outline-none">
+                            <SelectValue placeholder="Select a channel type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(ChannelType).map((type) => (
+                            <SelectItem
+                              key={type}
+                              value={type}
+                              className="capitalize">
+                              {type.toLowerCase()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4 items-center">
-              {progress > 0 && (
-                <>
-                  <Progress value={progress} className="mr-0 w-full" />
-                  <p className="ml-4">{progress}%</p>
-                </>
-              )}
-
               <Button type="submit" variant={"primary"} disabled={isLoading}>
                 Create
               </Button>

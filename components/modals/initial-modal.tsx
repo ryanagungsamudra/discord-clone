@@ -120,7 +120,7 @@ export const InitialModal = () => {
         title: "Success create server",
         description: "Your server has been created successfully!",
       });
-      
+
       form.reset();
       router.refresh();
       setProgress(0);
@@ -246,14 +246,12 @@ export const InitialModal = () => {
               />
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4 items-center">
-              {
-                progress > 0 && (
-                  <>
+              {progress > 0 && (
+                <>
                   <Progress value={progress} className="mr-0 w-full" />
                   <p className="ml-4">{progress}%</p>
-                  </>
-                )
-              }
+                </>
+              )}
 
               <Button type="submit" variant={"primary"} disabled={isLoading}>
                 Create
