@@ -132,10 +132,9 @@ export const MessageFileModal = () => {
         description: "Your file has been uploaded successfully!",
       });
 
-      form.reset();
       router.refresh();
       setProgress(0);
-      onClose();
+      handleClose();
     } catch (error) {
       console.log(error);
     }
