@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import qs from "query-string";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { set, useForm } from "react-hook-form";
@@ -25,7 +26,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { useRouter } from "next/navigation";
@@ -35,36 +35,30 @@ import { storage } from "@/lib/firebase";
 import { useModal } from "@/hooks/use-modal-store";
 
 const formSchema = z.object({
-  name: z.string().min(1, {
-    message: "Server name is required",
-  }),
-  imageUrl: z.string().optional(),
-  //   imageUrl: z.string().min(1, {
+  fileUrl: z.string().optional(),
+  //   fileUrl: z.string().min(1, {
   //     message: "Server image is required",
   //   }),
 });
 
-export const EditServerModal = () => {
+export const MessageFileModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
 
-  const isModalOpen = isOpen && type === "editServer";
-  const { server } = data;
+  const isModalOpen = isOpen && type === "messageFile";
+  const { apiUrl, query } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      imageUrl: "",
+      fileUrl: "",
     },
   });
 
-  useEffect(() => {
-    if (server) {
-      form.setValue("name", server.name);
-      form.setValue("imageUrl", server.imageUrl);
-    }
-  }, [server, isOpen, form]);
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
 
   const isLoading = form.formState.isSubmitting;
 
@@ -104,8 +98,8 @@ export const EditServerModal = () => {
         const downloadURL = await getDownloadURL(imageRef);
         console.log("File uploaded successfully. Download URL:", downloadURL);
 
-        // Set the imageUrl field in the form
-        form.setValue("imageUrl", downloadURL, { shouldValidate: false });
+        // Set the fileUrl field in the form
+        form.setValue("fileUrl", downloadURL, { shouldValidate: false });
       } catch (error) {
         console.log(error);
       }
@@ -113,36 +107,38 @@ export const EditServerModal = () => {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (rawImage.length > 0) {
-      await uploadFirebase();
-    }
+    await uploadFirebase();
 
-    // Get the imageUrl value from the form after uploadFirebase has completed
-    const imageUrl = form.getValues("imageUrl");
+    // Get the fileUrl value from the form after uploadFirebase has completed
+    const fileUrl = form.getValues("fileUrl");
 
-    // Set the imageUrl in the values object
-    values.imageUrl = imageUrl;
+    // Set the fileUrl in the values object
+    values.fileUrl = fileUrl;
 
     try {
-      await axios.patch(`/api/servers/${server?.id}`, values);
+      const url = qs.stringifyUrl({
+        url: apiUrl || "",
+        query,
+      });
+
+      await axios.post(url, {
+        ...values,
+        content: values.fileUrl,
+      });
+
       toast({
         variant: "success",
-        title: "Success create server",
-        description: "Your server has been created successfully!",
+        title: "Success upload file",
+        description: "Your file has been uploaded successfully!",
       });
 
       form.reset();
       router.refresh();
       setProgress(0);
-      window.location.reload();
+      onClose();
     } catch (error) {
       console.log(error);
     }
-  };
-
-  const handleClose = () => {
-    form.reset();
-    onClose();
   };
 
   return (
@@ -150,47 +146,22 @@ export const EditServerModal = () => {
       <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Customize your server
+            Add an attachment
           </DialogTitle>
           <DialogDescription className="text-center text-zinc-500">
-            Give yout server a personality with a name and an image. You can
-            always change these later.
+            Send a file as a message
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-8 px-6">
               <div className="flex items-center justify-center text-center">
-                <FileUploadDropzone
-                  onDrop={onDrop}
-                  imageUrl={server?.imageUrl}
-                />
+                <FileUploadDropzone onDrop={onDrop} />
               </div>
 
               <FormMessage>
-                {form.formState.errors.imageUrl?.message}
+                {form.formState.errors.fileUrl?.message}
               </FormMessage>
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
-                      Server Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter a server name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4 items-center">
               {progress > 0 ? (
@@ -200,7 +171,7 @@ export const EditServerModal = () => {
                 </>
               ) : (
                 <Button type="submit" variant={"primary"} disabled={isLoading}>
-                  Save
+                  Send
                 </Button>
               )}
             </DialogFooter>
