@@ -9,6 +9,7 @@ export const getOrCreateConversation = async (
     (await findConversation(memberTwoId, memberOneId));
 
   if (!conversation) {
+    // @ts-ignore
     conversation = await createNewConversation(memberOneId, memberTwoId);
   }
 
