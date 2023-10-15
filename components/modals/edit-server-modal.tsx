@@ -164,6 +164,7 @@ export const EditServerModal = () => {
                 <FileUploadDropzone
                   onDrop={onDrop}
                   imageUrl={server?.imageUrl}
+                  type="square"
                 />
               </div>
 

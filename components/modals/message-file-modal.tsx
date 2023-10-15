@@ -63,7 +63,7 @@ export const MessageFileModal = () => {
   const isLoading = form.formState.isSubmitting;
 
   // Handle image upload
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const [rawImage, setRawImage] = useState<File[]>([]);
   const [progress, setProgress] = useState(0);
 
@@ -126,11 +126,11 @@ export const MessageFileModal = () => {
         content: values.fileUrl,
       });
 
-      toast({
-        variant: "success",
-        title: "Success upload file",
-        description: "Your file has been uploaded successfully!",
-      });
+      // toast({
+      //   variant: "success",
+      //   title: "Success upload file",
+      //   description: "Your file has been uploaded successfully!",
+      // });
 
       router.refresh();
       setProgress(0);
@@ -155,7 +155,7 @@ export const MessageFileModal = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-8 px-6">
               <div className="flex items-center justify-center text-center">
-                <FileUploadDropzone onDrop={onDrop} />
+                <FileUploadDropzone onDrop={onDrop} type="square" />
               </div>
 
               <FormMessage>

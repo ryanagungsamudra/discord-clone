@@ -8,9 +8,14 @@ import { useDropzone } from "react-dropzone";
 interface FileUploadProps {
   onDrop: (acceptedFiles: File[]) => void;
   imageUrl?: string;
+  type?: string;
 }
 
-export const FileUploadDropzone = ({ onDrop, imageUrl }: FileUploadProps) => {
+export const FileUploadDropzone = ({
+  onDrop,
+  imageUrl,
+  type,
+}: FileUploadProps) => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
@@ -45,14 +50,18 @@ export const FileUploadDropzone = ({ onDrop, imageUrl }: FileUploadProps) => {
         isDragActive ? "border-primary" : "border-zinc-300"
       }`}>
       <input {...getInputProps()} />
-      {filePreview !== null && acceptedFiles[0]?.type === "image/jpeg" ? (
+      {filePreview !== null ? (
         <Image
           src={filePreview}
           alt="File Preview"
           width={200}
           height={200}
           // className="max-w-40 max-h-40 rounded-full"
-          className="w-40 h-40 rounded-full object-cover"
+          className={
+            type === "square"
+              ? "w-60 h-60 object-cover"
+              : "w-40 h-40 rounded-full object-cover"
+          }
         />
       ) : (
         <>
