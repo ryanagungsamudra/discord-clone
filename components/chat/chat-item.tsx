@@ -133,6 +133,7 @@ export const ChatItem = ({
   const isOwner = currentMember.id === member.id;
   const canDeleteMessage = !deleted && (isAdmin || isModerator || isOwner);
   const canEditMessage = !deleted && isOwner && !fileUrl;
+  // @ts-ignore
   const isPDF = hasPdfExtension(fileUrl);
   const isImage = !isPDF && fileUrl;
 
@@ -175,12 +176,14 @@ export const ChatItem = ({
               <FileIcon className="h-10 w-10 fill-indigo-200 stroke-indigo-400" />
               <div className="">
                 <a
+                  // @ts-ignore
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="ml-2 text-sm text-indigo-500 dark:text-indigo-400 hover:underline">
                   PDF File
                 </a>
+                {/* @ts-ignore */}
                 <p className="pl-2 text-sm">{getPdfNameFromUrl(fileUrl)}</p>
               </div>
             </div>
